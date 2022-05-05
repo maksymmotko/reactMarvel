@@ -1,69 +1,38 @@
-import {Component} from "react";
+import {useState, useEffect} from "react";
 import PropTypes from 'prop-types';
 
 import Spinner from "../spinner/Spinner";
 import ErrorMessage from "../errorMessage/ErrorMessage";
 import Skeleton from "../skeleton/Skeleton";
 import './charInfo.scss';
-import MarvelService from "../../services/MarvelService";
+import useMarvelService from "../../services/MarvelService";
 
-class CharInfo extends Component {
+const CharInfo = (props) => {
 
-    state = {
-        char: null,
-        loading: false,
-        error: false
-    }
+    const [char, setChar] = useState(null);
+    
 
-    marvelService = new MarvelService();
+    const {loading, error, getCharacter, clearError} = useMarvelService();
 
-    componentDidMount() {
-        this.updateChar();
-    }
+    useEffect(() => {
+        updateChar();
+    }, [props.charId])
 
-    componentDidUpdate(prevProps) {
-        if (this.props.charId !== prevProps.charId) {
-            this.updateChar();
-        }
-    }
-
-
-    updateChar = () => {
-        const {charId} = this.props;
+    const updateChar = () => {
+        const {charId} = props;
         if(!charId) {
             return;
         }
 
-        this.onCharLoading();
-        this.marvelService
-            .getCharacter(charId)
-            .then(this.onCharLoaded)
-            .catch(this.onError)
-
+        clearError();
+        getCharacter(charId)
+            .then(onCharLoaded)
     }
 
-    onCharLoaded = (char) => {
-        this.setState({
-            char, 
-            loading: false
-        })
-    }
+    const onCharLoaded = (char) => {
 
-    onCharLoading = () => {
-        this.setState({
-            loading: true
-        })
+        setChar(char);
     }
-
-    onError = () => {
-        this.setState({
-            loading: false,
-            error: true
-        })
-    }
-
-    render () {
-        const {char, loading, error} = this.state;
 
         const skeleton = char || loading || error ? null : <Skeleton/>;
         const errorMessage = error ? <ErrorMessage/> : null;
@@ -78,7 +47,6 @@ class CharInfo extends Component {
                 {content}
             </div>
         )
-    }
 }
 
 const View = ({char}) => {
